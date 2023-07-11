@@ -1,0 +1,21 @@
+{
+  "meeting_id": "id-of-the-room",
+  "start_time": "timestamp-when-things-started",
+  "end_time": "timestamp-when-things-ended",
+  "recorder": {
+    "name": "name-of-the-recorder",
+    "avatar": "path/to/avatar-image"
+  },
+  "videos": [
+    "path/to/first/video",
+    "path/to/second/video"
+  ],
+  "audios": [
+    "path/to/first/audio",
+    "path/to/second/audio"
+  ],
+  "screens": [
+    "path/to/first/screen-share",
+    "path/to/second/screen-share"
+  ]
+}
