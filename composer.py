@@ -1,8 +1,19 @@
 import re
 import json
-from moviepy.editor import VideoFileClip, concatenate_audioclips, concatenate_videoclips, concatenate_videoclips, ImageClip, CompositeVideoClip, TextClip, AudioFileClip, AudioClip
+from moviepy.editor import (
+    VideoFileClip,
+    concatenate_audioclips,
+    concatenate_videoclips,
+    concatenate_videoclips,
+    ImageClip,
+    CompositeVideoClip,
+    TextClip,
+    AudioFileClip,
+    AudioClip,
+)
 from PIL import Image, ImageDraw
 import numpy as np
+
 
 class Composer:
     def __init__(self, script_path, config):
@@ -18,7 +29,10 @@ class Composer:
             parsed_script = json.load(f)
             self.script = parsed_script
             self.recorder = parsed_script["recorder"]
-            self.recorder["avatar"] = parsed_script.get("recorder", {}).get("avatar") or self.config["default_avatar"]
+            self.recorder["avatar"] = (
+                parsed_script.get("recorder", {}).get("avatar")
+                or self.config["default_avatar"]
+            )
 
             self.videos = parsed_script.get("videos", [])
             self.audios = parsed_script.get("audios", [])
@@ -26,9 +40,21 @@ class Composer:
 
     def calculate_start_time(self):
         start_time = float("inf")
-        first_video_start = self.get_timestamp_from_media_path(self.videos[0]) if len(self.videos) else float("inf")
-        first_audio_start = self.get_timestamp_from_media_path(self.audios[0]) if len(self.audios) else float("inf")
-        first_screen_start = self.get_timestamp_from_media_path(self.screens[0]) if len(self.screens) else float("inf")
+        first_video_start = (
+            self.get_timestamp_from_media_path(self.videos[0])
+            if len(self.videos)
+            else float("inf")
+        )
+        first_audio_start = (
+            self.get_timestamp_from_media_path(self.audios[0])
+            if len(self.audios)
+            else float("inf")
+        )
+        first_screen_start = (
+            self.get_timestamp_from_media_path(self.screens[0])
+            if len(self.screens)
+            else float("inf")
+        )
 
         if first_video_start:
             start_time = min(start_time, first_video_start)
@@ -39,9 +65,15 @@ class Composer:
         if first_screen_start:
             start_time = min(start_time, first_screen_start)
 
-        self.video_start = first_video_start - start_time if first_video_start else start_time
-        self.audio_start = first_audio_start - start_time if first_audio_start else start_time
-        self.screen_start = first_screen_start - start_time if first_screen_start else start_time
+        self.video_start = (
+            first_video_start - start_time if first_video_start else start_time
+        )
+        self.audio_start = (
+            first_audio_start - start_time if first_audio_start else start_time
+        )
+        self.screen_start = (
+            first_screen_start - start_time if first_screen_start else start_time
+        )
         self.start_time = start_time
 
     #  ╭──────────────────────────────────────────────────────────╮
@@ -59,7 +91,7 @@ class Composer:
         # square obviously
         size = (self.config["avatar_size"], self.config["avatar_size"])
 
-        mask = Image.new('L', size, 0)
+        mask = Image.new("L", size, 0)
         draw = ImageDraw.Draw(mask)
         draw.ellipse((0, 0, size[0], size[1]), fill=255)
         mask_array = np.array(mask)
@@ -87,7 +119,9 @@ class Composer:
         avatar_img = self.create_circle_avatar()
 
         # Create the composite video clip with the masked image in the center
-        placeholder_clip = CompositeVideoClip([avatar_img.set_pos("center")], size=self.size).set_duration(duration)
+        placeholder_clip = CompositeVideoClip(
+            [avatar_img.set_pos("center")], size=self.size
+        ).set_duration(duration)
 
         return placeholder_clip
 
@@ -99,7 +133,7 @@ class Composer:
         :param media_path: path/to/media/file
         :return: timestamp or None
         """
-        timestamp_matched = re.search(r'/(\d+)\.(webm|mp4|wav)$', media_path)
+        timestamp_matched = re.search(r"/(\d+)\.(webm|mp4|wav)$", media_path)
 
         if timestamp_matched:
             return int(timestamp_matched.group(1))
@@ -111,7 +145,7 @@ class Composer:
         Calculate the gap duration between two clips
 
         Simply take the timestamp from two clips then do the math
-        - formulas: t2 - (t1 + first_clip.duration) / 1000 
+        - formulas: t2 - (t1 + first_clip.duration) / 1000
         (divide to 1000 to convert to second unit)
 
         :param first_path: path/to/the/first/media/path
@@ -155,10 +189,13 @@ class Composer:
         gaps = []
 
         for i in range(len(self.videos) - 1):
-            gaps.append(self.get_video_gap_between_two_videos(self.videos[i], self.videos[i+1]))
+            gaps.append(
+                self.get_video_gap_between_two_videos(
+                    self.videos[i], self.videos[i + 1]
+                )
+            )
 
         return gaps
-
 
     def fill_the_video_gaps(self):
         """
@@ -177,11 +214,11 @@ class Composer:
         # merge two arrays
         i = 1
         while len(gaps) or len(clips):
-            if (i % 2):
+            if i % 2:
                 solid_streams.append(clips.pop(0))
             else:
                 solid_streams.append(gaps.pop(0))
-            i+=1
+            i += 1
 
         solid_streams.extend(clips)
         solid_streams.extend(gaps)
@@ -191,7 +228,6 @@ class Composer:
             solid_streams.insert(0, self.create_video_placeholder(self.video_start))
 
         return solid_streams
-
 
     #  ╭──────────────────────────────────────────────────────────╮
     #  │                     Audio processing                     │
@@ -221,10 +257,13 @@ class Composer:
         gaps = []
 
         for i in range(len(self.audios) - 1):
-            gaps.append(self.get_audio_gap_between_two_audios(self.audios[i], self.audios[i+1]))
+            gaps.append(
+                self.get_audio_gap_between_two_audios(
+                    self.audios[i], self.audios[i + 1]
+                )
+            )
 
         return gaps
-
 
     def fill_the_audio_gaps(self):
         """
@@ -241,11 +280,11 @@ class Composer:
         # merge two arrays
         i = 1
         while len(gaps) or len(clips):
-            if (i % 2):
+            if i % 2:
                 solid_streams.append(clips.pop(0))
             else:
                 solid_streams.append(gaps.pop(0))
-            i+=1
+            i += 1
 
         solid_streams.extend(clips)
         solid_streams.extend(gaps)
@@ -253,10 +292,11 @@ class Composer:
         # if the audio was recorder after video or screen
         # create a silent audio and add it to the head
         if self.audio_start > 0:
-            solid_streams.insert(0, AudioClip(make_frame=lambda _: 0, duration=self.audio_start))
+            solid_streams.insert(
+                0, AudioClip(make_frame=lambda _: 0, duration=self.audio_start)
+            )
 
         return solid_streams
-
 
     def create_name_box(self):
         text = f'  {self.recorder["name"]}  '
@@ -265,7 +305,9 @@ class Composer:
         color = "white"
 
         # Create the TextClip with the given properties
-        text_clip = TextClip(text, font=font, fontsize=fontsize, color=color, bg_color="gray10")
+        text_clip = TextClip(
+            text, font=font, fontsize=fontsize, color=color, bg_color="gray10"
+        )
 
         # Set the position of the TextClip to the left bottom corner
         x = 10
@@ -281,7 +323,6 @@ class Composer:
         # with his/her avatar image
         video_streams = self.fill_the_video_gaps()
         solid_webcam_clips = concatenate_videoclips(video_streams, method="compose")
-
 
         # get the solid audio streams
         solid_audio_clips = concatenate_audioclips(self.fill_the_audio_gaps())

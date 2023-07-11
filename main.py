@@ -3,9 +3,10 @@ import os
 import configparser
 from composer import Composer
 
+
 def build_config():
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read("config.ini")
 
     rel_output_dir = config["composer"]["output_dir"]
     output_dir = os.path.join(os.path.dirname(__file__), rel_output_dir)
@@ -26,8 +27,9 @@ def build_config():
         "assets_path": assets_path,
         "font": font,
         "default_avatar": default_avatar,
-        "avatar_size": int(config["composer"]["avatar_size"])
+        "avatar_size": int(config["composer"]["avatar_size"]),
     }
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
