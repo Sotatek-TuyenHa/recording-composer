@@ -181,6 +181,7 @@ class Composer:
         placeholder_clip = CompositeVideoClip(
             [avatar_img.set_pos("center")], size=self.size
         ).set_duration(duration)
+        placeholder_clip.fps = 1
 
         return placeholder_clip
 
